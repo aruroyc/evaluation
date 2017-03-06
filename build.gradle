@@ -1,6 +1,6 @@
 buildscript {
 	ext {
-		springBootVersion = '2.0.0.BUILD-SNAPSHOT'
+		springBootVersion = '1.5.2'
 	}
 	repositories {
 		mavenCentral()
@@ -35,5 +35,7 @@ dependencies {
 	compile('org.springframework.boot:spring-boot-starter-data-mongodb')
 	compile('org.springframework.boot:spring-boot-starter-security')
 	compile('org.springframework.boot:spring-boot-starter-web')
+	compile('com.mchange:c3p0:0.9.5.2')
+	compile('mysql:mysql-connector-java:5.1.37')
 	testCompile('org.springframework.boot:spring-boot-starter-test')
 }

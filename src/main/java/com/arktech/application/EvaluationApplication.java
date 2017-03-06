@@ -1,4 +1,4 @@
-package com.arktech;
+package com.arktech.application;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
