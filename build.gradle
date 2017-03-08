@@ -1,6 +1,6 @@
 buildscript {
 	ext {
-		springBootVersion = '1.5.2'
+		springBootVersion = '2.0.0.BUILD-SNAPSHOT'
 	}
 	repositories {
 		mavenCentral()
@@ -39,3 +39,5 @@ dependencies {
 	compile('mysql:mysql-connector-java:5.1.37')
 	testCompile('org.springframework.boot:spring-boot-starter-test')
 }
+group 'com.arktech'
+version '1.0-SNAPSHOT'
