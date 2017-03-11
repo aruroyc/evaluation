@@ -1,5 +1,6 @@
-package com.arktech.analytics;
+package com.arktech.analytics.processors;
 
+import com.arktech.analytics.api.AnalyticsQueue;
 import com.arktech.analytics.api.DataProcessor;
 import com.arktech.analytics.persistence.NoSQLDataRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -17,14 +19,15 @@ import java.util.concurrent.Executors;
  * Created by roychoud on 07/03/17.
  */
 @Service
-public class AnalyticsQueue {
+@Qualifier("defaultQueue")
+public class DefaultAnalyticsQueue implements AnalyticsQueue {
 
     @Value("${analytics.consumers}")
     private int maxAnalyticsConsumers;
 
     @Autowired
     private NoSQLDataRepository repository;
-    @Autowired
+    @Resource
     private static List<DataProcessor> dataProcessors;
 
     private Map<String,DataProcessor> dataProcessorMap = new LinkedHashMap<>();
