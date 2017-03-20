@@ -3,6 +3,7 @@ package com.arktech.analytics.api;
 import java.util.Collection;
 
 /**
+ * API to send data to analytics module.
  * Created by aruroyc on 11/03/17.
  */
 public interface AnalyticsQueue {

@@ -2,10 +2,11 @@ package com.arktech.analytics.processors;
 
 import com.arktech.analytics.api.AnalyticsQueue;
 import com.arktech.analytics.api.DataProcessor;
-import com.arktech.analytics.persistence.NoSQLDataRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -24,22 +25,33 @@ public class DefaultAnalyticsQueue implements AnalyticsQueue {
 
     @Value("${analytics.consumers}")
     private int maxAnalyticsConsumers;
-
-    @Autowired
-    private NoSQLDataRepository repository;
+    private Logger logger = LogManager.getLogger(DefaultAnalyticsQueue.class);
     @Resource
-    private static List<DataProcessor> dataProcessors;
+    private List<MongoRepository> repositories;
+    @Resource
+    private List<DataProcessor> dataProcessors;
 
     private Map<String,DataProcessor> dataProcessorMap = new LinkedHashMap<>();
+    private Map<String,MongoRepository> dataPersisterMap = new LinkedHashMap<>();
     private ExecutorService executorService;
 
     @PostConstruct
     private void init() {
-        if (dataProcessorMap.isEmpty())
-            dataProcessors.forEach(dataProcessor -> {
-                dataProcessorMap.put(dataProcessor.getClass().getAnnotation(Qualifier.class).value(), dataProcessor);
-            });
-        executorService= Executors.newFixedThreadPool(maxAnalyticsConsumers);
+
+            if (dataProcessorMap.isEmpty())
+                dataProcessors.forEach(dataProcessor -> {
+                    dataProcessorMap.put(dataProcessor.getClass().getAnnotation(Qualifier.class).value(), dataProcessor);
+                });
+            if (dataPersisterMap.isEmpty())
+                repositories.forEach(repository -> {
+                    try {
+                        dataPersisterMap.put(repository.getClass().getField("qualifier").get(repository).toString(),
+                                repository);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                });
+            executorService= Executors.newFixedThreadPool(maxAnalyticsConsumers);
     }
 
     public void pushData(Object object,String analyticsFacet,boolean doProcess)
@@ -48,13 +60,13 @@ public class DefaultAnalyticsQueue implements AnalyticsQueue {
             @Override
             public void run() {
                 try{
-                    repository.save((Serializable)(doProcess?dataProcessorMap.get
+                    dataPersisterMap.get(analyticsFacet).save((Serializable)(doProcess?dataProcessorMap.get
                             (analyticsFacet)
                             .doProcess(object):object));
                 }
                 catch (Exception e)
                 {
-                    //TODO Logging
+                    logger.error("Error while asynchronously pushing data to analytics :\n"+object.toString());
                 }
             }
         });
@@ -66,13 +78,14 @@ public class DefaultAnalyticsQueue implements AnalyticsQueue {
             @Override
             public void run() {
                 try{
-                    repository.save((Collection<?>)(doProcess?dataProcessorMap.get
+                    dataPersisterMap.get(analyticsFacet).save((Collection<?>)(doProcess?dataProcessorMap.get
                             (analyticsFacet)
                             .parallelProcess(object):object));
                 }
                 catch (Exception e)
                 {
-                    //TODO Logging
+                    logger.error("Error while asynchronously pushing "+object.size()+" data objects to analytics " +
+                            ":\n"+object.toString());
                 }
             }
         });

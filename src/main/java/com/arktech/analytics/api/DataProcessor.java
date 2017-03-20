@@ -6,6 +6,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
+ * API that specifies a abstract method doProcess to be implement by
+ * individual processors based on how they want to modify the object.
+ * Also specifies two methods to allow iterative and parallel processing of a collection of objects.
  * Created by roychoud on 06/03/17.
  */
 public interface DataProcessor {
